@@ -1,0 +1,93 @@
+export interface WordEntry {
+  id: string;
+  word: string;
+  pronunciation: string;
+  partOfSpeech: string;
+  definition: string;
+  origin: string;
+  originLanguage: string;
+  example: string;
+}
+
+export const WORDS: WordEntry[] = [
+  {
+    id: "lexicon",
+    word: "lexicon",
+    pronunciation: "/ˈlɛk.sɪ.kən/",
+    partOfSpeech: "noun",
+    definition: "The vocabulary of a person, language, or branch of knowledge.",
+    origin: "From Greek 'lexikon' (biblion), 'word book', from 'lexis' meaning 'word' or 'speech'.",
+    originLanguage: "Greek",
+    example: "The word entered the English lexicon in the 17th century.",
+  },
+  {
+    id: "etymology",
+    word: "etymology",
+    pronunciation: "/ˌɛt.ɪˈmɒl.ə.dʒi/",
+    partOfSpeech: "noun",
+    definition: "The study of the origin of words and the way their meanings have changed through history.",
+    origin: "From Greek 'etymologia', from 'etymon' ('true sense') + '-logia' ('study of').",
+    originLanguage: "Greek",
+    example: "Her research traces the etymology of everyday farming terms.",
+  },
+  {
+    id: "serendipity",
+    word: "serendipity",
+    pronunciation: "/ˌsɛr.ənˈdɪp.ɪ.ti/",
+    partOfSpeech: "noun",
+    definition: "The occurrence of finding pleasant or valuable things by chance.",
+    origin: "Coined by Horace Walpole in 1754, from the Persian fairy tale 'The Three Princes of Serendip'.",
+    originLanguage: "Persian (coined in English)",
+    example: "Meeting her old professor at the airport was pure serendipity.",
+  },
+  {
+    id: "ephemeral",
+    word: "ephemeral",
+    pronunciation: "/ɪˈfɛm.ər.əl/",
+    partOfSpeech: "adjective",
+    definition: "Lasting for a very short time.",
+    origin: "From Greek 'ephemeros', meaning 'lasting only a day', from 'epi-' + 'hemera' ('day').",
+    originLanguage: "Greek",
+    example: "Cherry blossoms are prized in part for their ephemeral beauty.",
+  },
+  {
+    id: "petrichor",
+    word: "petrichor",
+    pronunciation: "/ˈpɛt.rɪ.kɔːr/",
+    partOfSpeech: "noun",
+    definition: "A pleasant smell frequently accompanying the first rain after a long period of warm, dry weather.",
+    origin: "Coined in 1964 from Greek 'petra' ('stone') + 'ichor' (the fluid said to flow in gods' veins).",
+    originLanguage: "Greek",
+    example: "The petrichor rising from the pavement meant the drought had finally broken.",
+  },
+  {
+    id: "solitude",
+    word: "solitude",
+    pronunciation: "/ˈsɒl.ɪ.tjuːd/",
+    partOfSpeech: "noun",
+    definition: "The state of being alone, especially when this is peaceful and voluntary.",
+    origin: "From Old French 'solitude', from Latin 'solitudo', from 'solus' ('alone').",
+    originLanguage: "Latin",
+    example: "He found the solitude of the cabin restorative after months of travel.",
+  },
+  {
+    id: "wanderlust",
+    word: "wanderlust",
+    pronunciation: "/ˈwɒn.də.lʌst/",
+    partOfSpeech: "noun",
+    definition: "A strong desire to travel and explore the world.",
+    origin: "Borrowed directly from German 'Wanderlust' ('wandering' + 'desire').",
+    originLanguage: "German",
+    example: "Her wanderlust took her through fourteen countries in two years.",
+  },
+  {
+    id: "resonance",
+    word: "resonance",
+    pronunciation: "/ˈrɛz.ə.nəns/",
+    partOfSpeech: "noun",
+    definition: "The quality of evoking or being filled with images, memories, and emotions.",
+    origin: "From Latin 'resonantia', from 'resonare' ('to resound'), from 're-' + 'sonare' ('to sound').",
+    originLanguage: "Latin",
+    example: "The poem's imagery had a deep resonance with readers who had emigrated.",
+  },
+];

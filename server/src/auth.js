@@ -1,60 +1,211 @@
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import { Router } from "express";
+import { randomUUID } from "node:crypto";
+import { OAuth2Client } from "google-auth-library";
 
-const JWT_SECRET = process.env.JWT_SECRET;
-const COOKIE_NAME = "lexora_token";
-const TOKEN_TTL = "30d";
+import { db } from "../db.js";
+import {
+  hashPassword,
+  verifyPassword,
+  signToken,
+  setAuthCookie,
+  clearAuthCookie,
+  requireAuth,
+} from "../auth.js";
 
-if (!JWT_SECRET || JWT_SECRET === "replace-this-with-a-long-random-string") {
-  console.warn(
-    "[lexora-server] WARNING: JWT_SECRET is missing or still the placeholder value. " +
-      "Set a real secret in server/.env before deploying."
-  );
+export const authRouter = Router();
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+function publicUser(user) {
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    savedWords: user.savedWords,
+  };
 }
 
-export async function hashPassword(password) {
-  return bcrypt.hash(password, 10);
-}
 
-export async function verifyPassword(password, hash) {
-  return bcrypt.compare(password, hash);
-}
+// =======================
+// Normal Signup
+// =======================
 
-export function signToken(userId) {
-  return jwt.sign({ sub: userId }, JWT_SECRET ?? "dev-only-insecure-secret", { expiresIn: TOKEN_TTL });
-}
+authRouter.post("/signup", async (req, res) => {
+  const { name, email, password } = req.body ?? {};
 
-export function verifyToken(token) {
-  try {
-    const payload = jwt.verify(token, JWT_SECRET ?? "dev-only-insecure-secret");
-    return payload.sub;
-  } catch {
-    return null;
+  if (!name?.trim() || !email?.trim() || !password || password.length < 6) {
+    return res.status(400).json({
+      error: "Enter a name, valid email, and password of at least 6 characters.",
+    });
   }
-}
 
-export function setAuthCookie(res, token) {
-  res.cookie(COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+  const normalizedEmail = email.trim().toLowerCase();
+
+  if (db.findUserByEmail(normalizedEmail)) {
+    return res.status(409).json({
+      error: "An account with that email already exists.",
+    });
+  }
+
+  const passwordHash = await hashPassword(password);
+
+  const user = await db.createUser({
+    id: randomUUID(),
+    name: name.trim(),
+    email: normalizedEmail,
+    passwordHash,
   });
-}
 
-export function clearAuthCookie(res) {
-  res.clearCookie(COOKIE_NAME);
-}
+  const token = signToken(user.id);
 
-/** Express middleware: attaches req.userId if a valid session cookie is present. */
-export function requireAuth(req, res, next) {
-  const token = req.cookies?.[COOKIE_NAME];
-  const userId = token ? verifyToken(token) : null;
-  if (!userId) {
-    return res.status(401).json({ error: "Not signed in." });
+  setAuthCookie(res, token);
+
+  res.status(201).json({
+    user: publicUser(user),
+  });
+});
+
+
+// =======================
+// Normal Login
+// =======================
+
+authRouter.post("/login", async (req, res) => {
+  const { email, password } = req.body ?? {};
+
+  if (!email || !password) {
+    return res.status(400).json({
+      error: "Enter your email and password.",
+    });
   }
-  req.userId = userId;
-  next();
-}
 
-export { COOKIE_NAME };
+  const user = db.findUserByEmail(
+    email.trim().toLowerCase()
+  );
+
+  const valid =
+    user && user.passwordHash
+      ? await verifyPassword(password, user.passwordHash)
+      : false;
+
+
+  if (!user || !valid) {
+    return res.status(401).json({
+      error: "Incorrect email or password.",
+    });
+  }
+
+
+  const token = signToken(user.id);
+
+  setAuthCookie(res, token);
+
+  res.json({
+    user: publicUser(user),
+  });
+});
+
+
+// =======================
+// Google Login
+// =======================
+
+authRouter.post("/google", async (req, res) => {
+  try {
+
+    const { credential } = req.body;
+
+
+    if (!credential) {
+      return res.status(400).json({
+        error: "Google credential missing.",
+      });
+    }
+
+
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+
+    const payload = ticket.getPayload();
+
+
+    const email = payload.email.toLowerCase();
+
+    const name = payload.name;
+
+
+    let user = db.findUserByEmail(email);
+
+
+    if (!user) {
+
+      user = await db.createUser({
+        id: randomUUID(),
+        name,
+        email,
+        passwordHash: "",
+      });
+
+    }
+
+
+    const token = signToken(user.id);
+
+
+    setAuthCookie(res, token);
+
+
+    res.json({
+      user: publicUser(user),
+    });
+
+
+  } catch (error) {
+
+    console.error("Google login error:", error);
+
+    res.status(401).json({
+      error: "Google authentication failed.",
+    });
+
+  }
+});
+
+
+// =======================
+// Logout
+// =======================
+
+authRouter.post("/logout", (_req, res) => {
+
+  clearAuthCookie(res);
+
+  res.status(204).end();
+
+});
+
+
+// =======================
+// Current User
+// =======================
+
+authRouter.get("/me", requireAuth, (req, res) => {
+
+  const user = db.findUserById(req.userId);
+
+
+  if (!user) {
+    return res.status(401).json({
+      error: "Not signed in.",
+    });
+  }
+
+
+  res.json({
+    user: publicUser(user),
+  });
+
+});

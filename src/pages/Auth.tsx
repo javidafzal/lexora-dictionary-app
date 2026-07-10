@@ -169,6 +169,17 @@ export default function Auth() {
                 : "Create account"}
             <ArrowRight className="ml-2 h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
           </button>
+          {mode === "login" && (
+            <button
+              type="button"
+              onClick={() => {
+                window.location.href =
+                   "https://lexora-dictionary-app.onrender.com/api/auth/google";
+              }}
+            >
+              Continue with Google
+            </button>
+          )}
         </form>
 
         <p className="text-center text-sm text-white/50">
@@ -185,6 +196,7 @@ export default function Auth() {
               <button className="text-amber-300 hover:underline" onClick={() => switchMode("login")}>
                 Sign in
               </button>
+              
             </>
           )}
         </p>

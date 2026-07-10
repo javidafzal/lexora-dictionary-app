@@ -2,7 +2,7 @@ import { Router } from "express";
 import { randomUUID } from "node:crypto";
 import { OAuth2Client } from "google-auth-library";
 
-import { db } from "../db.js";
+import { db } from "./db.js";
 import {
   hashPassword,
   verifyPassword,
@@ -10,7 +10,7 @@ import {
   setAuthCookie,
   clearAuthCookie,
   requireAuth,
-} from "../auth.js";
+} from "./auth-utils.js";
 
 export const authRouter = Router();
 

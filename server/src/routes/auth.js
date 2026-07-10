@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { randomUUID } from "node:crypto";
 import { db } from "../db.js";
-import { hashPassword, verifyPassword, signToken, setAuthCookie, clearAuthCookie, requireAuth } from "../auth.js";
+import { hashPassword, verifyPassword, signToken, setAuthCookie, clearAuthCookie, requireAuth } from "../auth-utils.js";
 
 export const authRouter = Router();
 

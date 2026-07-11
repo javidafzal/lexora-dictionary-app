@@ -1,7 +1,7 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import { db } from "./db.js";
 import { randomUUID } from "node:crypto";
+import { db } from "./db.js";
 
 passport.use(
   new GoogleStrategy(
@@ -11,28 +11,30 @@ passport.use(
       callbackURL: process.env.GOOGLE_CALLBACK_URL,
     },
     async (_accessToken, _refreshToken, profile, done) => {
-      const email = profile.emails[0].value.toLowerCase();
+      try {
+        const email = profile.emails?.[0]?.value?.toLowerCase();
 
-      let user = db.findUserByEmail(email);
+        if (!email) {
+          return done(new Error("Google account has no email"));
+        }
 
-      if (!user) {
-        user = await db.createUser({
-          id: randomUUID(),
-          name: profile.displayName,
-          email,
-          passwordHash: "",
-        });
+        let user = db.findUserByEmail(email);
+
+        if (!user) {
+          user = await db.createUser({
+            id: randomUUID(),
+            name: profile.displayName || "Google User",
+            email,
+            passwordHash: "",
+          });
+        }
+
+        return done(null, user);
+      } catch (error) {
+        return done(error);
       }
-
-      return done(null, user);
     }
   )
 );
-
-passport.serializeUser((user, done) => done(null, user.id));
-
-passport.deserializeUser((id, done) => {
-  done(null, db.findUserById(id));
-});
 
 export default passport;

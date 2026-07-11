@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { User, Lock, Mail, ArrowRight } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { SmokeyBackground } from "@/components/ui/smokey-background";
+import { GoogleLogin } from "@react-oauth/google";
 
 type Mode = "login" | "signup";
 
@@ -170,16 +171,39 @@ export default function Auth() {
             <ArrowRight className="ml-2 h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
           </button>
           {mode === "login" && (
-            <button
-              type="button"
-              onClick={() => {
-                window.location.href =
-                   "https://lexora-dictionary-app.onrender.com/api/auth/google";
-              }}
-            >
-              Continue with Google
-            </button>
-          )}
+  <div className="mt-4">
+    <GoogleLogin
+      onSuccess={async (credentialResponse) => {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/auth/google`,
+          {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              credential: credentialResponse.credential,
+            }),
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          alert(data.error);
+          return;
+        }
+
+        navigate("/saved");
+      }}
+      onError={() => {
+        alert("Google login failed");
+      }}
+    />
+  </div>
+)}
+          
         </form>
 
         <p className="text-center text-sm text-white/50">
